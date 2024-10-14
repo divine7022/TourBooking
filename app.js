@@ -1,10 +1,19 @@
 const fs = require('fs'); // this is a core moduel(should be always at the beginnig)
 const express = require('express');
 const { status } = require('express/lib/response');
+const { createRequire } = require('module');
 
 const app = express();
 
+// inside use() method we need to add the function that will be add to the middleware stack.
 app.use(express.json()); // here express.json is middleware
+
+// in each middleware function it has access to "request" and "response" object and also "next()".
+// And this middleware apply to each and every "request" that we make in the Browser. That is because we didn't specified any Route here.
+// app.use((req, res, next) => {
+//   console.log('Hello from the middleware👋');
+//   next(); // sending the req and res to the next middleware by calling next() function.
+// });
 
 // app.get('/', (req, res) => {
 //   res
@@ -23,11 +32,8 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
-app.get('/api/v1/tours', (req, res) => {
-  // when the user search this url then we need to send the response.
-  // still 200 is the satanderd, it is good practice to specify the "status"
+const getAllTours = (req, res) => {
   res.status(200).json({
-    // .json is use here to send the data in a json formate
     status: 'success',
     results: tours.length,
     data: {
@@ -35,19 +41,15 @@ app.get('/api/v1/tours', (req, res) => {
       tours,
     },
   });
-});
+};
 
-// we are creating a parameters to access perticular item(here "id" is a variable).
-// the variable in the url "id" is called params
-app.get('/api/v1/tours/:id', (req, res) => {
-  console.log(req.params);
+// it is to get only one tour
+const getTour = (req, res) => {
+  // console.log(req.params);
 
-  const id = req.params.id * 1; // this id will be in the "string" formate so we need to convert it into number.(so to convert into number this is the small nice trick)
-  // const tour = tours.find((el) => el.id === req.params); //"req.params" will contatis the id we entered in the url. we shouldn't use this cuz req.params gives an id object not the value.
+  const id = req.params.id * 1;
 
-  const tour = tours.find((el) => el.id === id); //we need to use only the "id" in order to get the value of the id.
-
-  // if we searched a id that is not exist in that case we need to send a 404 error.
+  const tour = tours.find((el) => el.id === id);
   // if(id > tours.length) {
   if (!tour) {
     return res.status(404).json({
@@ -58,25 +60,19 @@ app.get('/api/v1/tours/:id', (req, res) => {
 
   res.status(200).json({
     status: 'success',
-    // results: tours.length,
     data: {
-      tour, //if we want to create a same name of the property as a value name then just (tour)
+      tour,
     },
   });
-});
+};
 
-// "post" is used to create a new tour. but the url will be same as "get" method
-// the "req" object holds all the data/info about the request that was done.
-// in order to have/add that data to the "api" post method uses a "middleware"
-app.post('/api/v1/tours', (req, res) => {
+const createTour = (req, res) => {
   // console.log(req.body);
-  // const newTour = res.status(200).send('Done'); // Sending a success response
-  // to assign the newId to the data that we send
   const newId = tours[tours.length - 1].id + 1; // here the newId will be older data last id + 1.
   const newTour = Object.assign({ id: newId }, req.body);
-  // Now we need to push this tour into the tours array.
+
   tours.push(newTour);
-  // Now we need to persist that into the file(by writing it into the file Asyncrounously, cuz we should not block execn)
+
   fs.writeFile(
     `${__dirname}/dev-data/data/tours-simple.json`,
     JSON.stringify(tours), // it converts the js object into the string manner how it was initially
@@ -90,25 +86,31 @@ app.post('/api/v1/tours', (req, res) => {
       });
     }
   );
-});
+};
 
-app.patch('/api/v1/tours/:id', (req, res) => {
-  if (req.params.id * 1 > tours.length) {
-    // (*1) is to conver it to the number
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: '<Updated tour here...>',
-    },
-  });
-});
+const updateTour = (req, res) => {
+  // console.log(req.body);
+  const newId = tours[tours.length - 1].id + 1; // here the newId will be older data last id + 1.
+  const newTour = Object.assign({ id: newId }, req.body);
 
-app.delete('/api/v1/tours/:id', (req, res) => {
+  tours.push(newTour);
+
+  fs.writeFile(
+    `${__dirname}/dev-data/data/tours-simple.json`,
+    JSON.stringify(tours), // it converts the js object into the string manner how it was initially
+    (err) => {
+      // now we will send the newly created object as a response.
+      res.status(201).json({
+        status: 'success',
+        data: {
+          tour: newTour,
+        },
+      });
+    }
+  );
+};
+
+const deleteTour = (req, res) => {
   if (req.params.id * 1 > tours.length) {
     // (*1) is to conver it to the number
     return res.status(404).json({
@@ -120,7 +122,34 @@ app.delete('/api/v1/tours/:id', (req, res) => {
     status: 'success',
     data: null,
   });
+};
+
+// app.route('/api/v1/tours').get(getAllTours)  //  both are exactly the same.
+// app.get('/api/v1/tours', getAllTours);
+
+// app.get('/api/v1/tours/:id', getTour);
+
+// app.post('/api/v1/tours', createTour);
+
+// app.patch('/api/v1/tours/:id', updateTour);
+
+// app.delete('/api/v1/tours/:id', deleteTour);
+
+// The Routes here are themself a middlewares. but only apply certain URL/Route.
+// here we specify the route that we want. and on there specify what we want on "get"
+app.route('/api/v1/tours').get(getAllTours).post(createTour);
+
+// just if we call/request for the above router then we only get that responce not this middleware is executed.cuz the middleware stack will be terminate/end. So if we call the getTour by id(means a perticular )
+app.use((req, res, next) => {
+  console.log('Hello from the middleware👋');
+  next(); // sending the req and res to the next middleware by calling next() function.
 });
+
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(deleteTour);
 
 const port = 3000;
 app.listen(port, () => {
@@ -153,3 +182,11 @@ app.listen(port, () => {
 // the req object holds all the data/info about the request that was done. if that request contains some data that was sent then that data should be on the request.
 
 // which allows us to create a new object by merging together with an existing object
+
+///app.route('/api/v1/tours').get(getAllTours).post(createTour); -->
+//👆this is also an "middleware" but only apply for a certain URL/Route.
+
+///app.use((req, res, next) => {
+//  console.log('Hello from the middleware👋');
+//  next(); });
+//👆 : this is apply for the all the Request . cuz we didn't specified any Route here. if it before any Route handler. If it come after Route then it will be called after the execution of the Previous Route by the help of next() function.
