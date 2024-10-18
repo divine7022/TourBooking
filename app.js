@@ -1,160 +1,43 @@
-const fs = require('fs'); // this is a core moduel(should be always at the beginnig)
+// The app.js we have here is mainly used for "middleware" declerations. That we have all the middleware that we want to apply to all the routes, so in this case these 4 middleware(morgan, express.json, (req, res, next))
 const express = require('express');
-const { status } = require('express/lib/response');
-const { createRequire } = require('module');
+const morgan = require('morgan'); //Morgan is a middleware in Express.js used for logging HTTP requests.
+
+const tourRouter = require('./routes/tourRoutes');
+const userRouter = require('./routes/userRoutes');
 
 const app = express();
 
-// inside use() method we need to add the function that will be add to the middleware stack.
+// 1) MIDDLEWARES
+// we only log in the terminal if the NODE ENVIRONMENT is in "development". we should not log if we are in the "Production"
+console.log(process.env.NODE_ENV);
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 app.use(express.json()); // here express.json is middleware
 
-// in each middleware function it has access to "request" and "response" object and also "next()".
-// And this middleware apply to each and every "request" that we make in the Browser. That is because we didn't specified any Route here.
-// app.use((req, res, next) => {
-//   console.log('Hello from the middleware👋');
-//   next(); // sending the req and res to the next middleware by calling next() function.
-// });
+// SERVING STATIC FILE
+app.use(express.static(`${__dirname}/public`)); // argument we need to specify the directory from which we want to server static file.
+// Then we will be able to open the html files and images in the public directiory.
 
-// app.get('/', (req, res) => {
-//   res
-//     .status(200)
-//     .json({ message: 'Hello from the server side!', app: 'Natours' });
-// });
-
-// app.post('/', (req, res) => {
-//   res.send('You can post to this endport...');
-// });
-
-//Now it will be in the top level code.(will execute only once at the beginning. cuz get rid of call back heel if i write inside the app.get())
-
-const tours = JSON.parse(
-  // now the string object will be converted to the js object.
-  fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
-);
-
-const getAllTours = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      // tours: tours,
-      tours,
-    },
-  });
-};
-
-// it is to get only one tour
-const getTour = (req, res) => {
-  // console.log(req.params);
-
-  const id = req.params.id * 1;
-
-  const tour = tours.find((el) => el.id === id);
-  // if(id > tours.length) {
-  if (!tour) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-};
-
-const createTour = (req, res) => {
-  // console.log(req.body);
-  const newId = tours[tours.length - 1].id + 1; // here the newId will be older data last id + 1.
-  const newTour = Object.assign({ id: newId }, req.body);
-
-  tours.push(newTour);
-
-  fs.writeFile(
-    `${__dirname}/dev-data/data/tours-simple.json`,
-    JSON.stringify(tours), // it converts the js object into the string manner how it was initially
-    (err) => {
-      // now we will send the newly created object as a response.
-      res.status(201).json({
-        status: 'success',
-        data: {
-          tour: newTour,
-        },
-      });
-    }
-  );
-};
-
-const updateTour = (req, res) => {
-  // console.log(req.body);
-  const newId = tours[tours.length - 1].id + 1; // here the newId will be older data last id + 1.
-  const newTour = Object.assign({ id: newId }, req.body);
-
-  tours.push(newTour);
-
-  fs.writeFile(
-    `${__dirname}/dev-data/data/tours-simple.json`,
-    JSON.stringify(tours), // it converts the js object into the string manner how it was initially
-    (err) => {
-      // now we will send the newly created object as a response.
-      res.status(201).json({
-        status: 'success',
-        data: {
-          tour: newTour,
-        },
-      });
-    }
-  );
-};
-
-const deleteTour = (req, res) => {
-  if (req.params.id * 1 > tours.length) {
-    // (*1) is to conver it to the number
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-};
-
-// app.route('/api/v1/tours').get(getAllTours)  //  both are exactly the same.
-// app.get('/api/v1/tours', getAllTours);
-
-// app.get('/api/v1/tours/:id', getTour);
-
-// app.post('/api/v1/tours', createTour);
-
-// app.patch('/api/v1/tours/:id', updateTour);
-
-// app.delete('/api/v1/tours/:id', deleteTour);
-
-// The Routes here are themself a middlewares. but only apply certain URL/Route.
-// here we specify the route that we want. and on there specify what we want on "get"
-app.route('/api/v1/tours').get(getAllTours).post(createTour);
-
-// just if we call/request for the above router then we only get that responce not this middleware is executed.cuz the middleware stack will be terminate/end. So if we call the getTour by id(means a perticular )
+//
 app.use((req, res, next) => {
   console.log('Hello from the middleware👋');
   next(); // sending the req and res to the next middleware by calling next() function.
 });
 
-app
-  .route('/api/v1/tours/:id')
-  .get(getTour)
-  .patch(updateTour)
-  .delete(deleteTour);
-
-const port = 3000;
-app.listen(port, () => {
-  console.log(`App running on port ${port}....`);
+// This time we are manipulating the request object.
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString(); // to see when exactly the request happened.
+  next(); // should not forget the call the next() middleware from the middleware stack.
 });
+
+/// 3) ROUTES:
+// we imported routes at the top and then "mounting" the router on two different routes that we have currently implemented.
+//# means for this route "/api/v1/tours" we want to apply "tourRouter" *MIDDLEWARE* . for that we can use * app.use * to mount them.
+app.use('/api/v1/tours', tourRouter); // means we want to use "tourRouter" on '/api/v1/tours' and again this "tourRouter" is a real * Middleware *
+app.use('/api/v1/users', userRouter); //# means for this route "/api/v1/user" we want to apply "userRouter" *MIDDLEWARE* . for that we can use * app.use * to mount them.
+
+module.exports = app;
 
 /////// ---COMMENTS---///
 
@@ -164,6 +47,8 @@ app.listen(port, () => {
 //* this callback((req, res) => {}) is called the Route handler.
 //* when the user search this url then we need to send all of the data.
 //* here "tours" is a resources now in the above url.
+//** in each middleware function it has access to "request" and "response" object and also "next()".
+// And this middleware apply to each and every "request" that we make in the Browser. That is because we didn't        specified any Route here.
 
 /// __dirname : is the folder where the current script is available(i,e the main folder).
 
@@ -190,3 +75,21 @@ app.listen(port, () => {
 //  console.log('Hello from the middleware👋');
 //  next(); });
 //👆 : this is apply for the all the Request . cuz we didn't specified any Route here. if it before any Route handler. If it come after Route then it will be called after the execution of the Previous Route by the help of next() function.
+
+///new Date().toISOString --> (.toISOstring)  it will then convert the date into nice readable formate.
+
+///--->app.route('/api/v1/tours').get(getAllTours).post(createTour);
+
+// just if we call/request for the above router then we only get that responce not this middleware is executed.cuz the middleware stack will be terminate/end. So if we call the getTour by id(means a perticular )
+// app.use((req, res, next) => {
+//   console.log('Hello from the middleware👋');
+//   next(); // sending the req and res to the next middleware by calling next() function.
+// });
+
+///app.use(morgan('dev')) // for this function we can pass arguments , which will kind of specify how we want the "login" to to like, and we can use some predefined strings for that and we are goning to use called "dev"
+
+///app.use(morgan('dev')); // for this function we can pass arguments , which will kind of specify how we want the "login" to to like, and we can use some predefined strings for that and we are goning to use called "dev"
+
+///res.status(500); The 500 error typically indicates an internal server error, meaning something is wrong with your server logic.
+
+/// app.use(express.static('')) // in argument we need to specify the directory from which we want to server static file(like images and html files )
