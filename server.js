@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
-dotenv.config({ path: './config.env' });
 const app = require('./app');
+
+dotenv.config({ path: './config.env' });
 
 // console.log(process.env); // by this we can see all the environment variables.
 
