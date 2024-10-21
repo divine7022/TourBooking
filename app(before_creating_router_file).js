@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 
 const tours = JSON.parse(
   // now the string object will be converted to the js object.
-  fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
+  fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`),
 );
 
 ///2) ROUTE HANDLERS
@@ -81,7 +81,7 @@ const createTour = (req, res) => {
           tour: newTour,
         },
       });
-    }
+    },
   );
 };
 
@@ -103,7 +103,7 @@ const updateTour = (req, res) => {
           tour: newTour,
         },
       });
-    }
+    },
   );
 };
 
@@ -176,7 +176,7 @@ app.listen(port, () => {
   console.log(`App running on port ${port}....`);
 });
 
-/////// ---COMMENTS---///
+/////// ---COMMENTS---////////////
 
 ///app.get('/api/v1/tours', (req, res) => {}
 //* the purpose of writing v1 is : if we want to make any changes then we can make it by creating the v2 .cuz we should not effect to any users of the v1 by our changes or updates.So we always should specify the version of the api.
