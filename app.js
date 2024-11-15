@@ -34,7 +34,7 @@ app.use((req, res, next) => {
 /// 3) ROUTES:
 // we imported routes at the top and then "mounting" the router on two different routes that we have currently implemented.
 //# means for this route "/api/v1/tours" we want to apply "tourRouter" *MIDDLEWARE* . for that we can use * app.use * to mount them.
-app.use('/api/v1/tours', tourRouter); // means we want to use "tourRouter" on '/api/v1/tours' and again this "tourRouter" is a real * Middleware *
+app.use('/api/v1/tours', tourRouter); // Any requests that start with /api/v1/tours should be handled by tourRouter.
 app.use('/api/v1/users', userRouter); //# means for this route "/api/v1/user" we want to apply "userRouter" *MIDDLEWARE* . for that we can use * app.use * to mount them.
 
 module.exports = app;

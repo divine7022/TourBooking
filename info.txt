@@ -1,0 +1,5 @@
+1) To start in Development environment write simply in the Terminal : npm run start:dev [ then by the help of "morgan" middleware we can get all the "request" informatinon in the terminal(like what is the url and what is the method of the request)].
+
+2) If we don't want to the information about the request that has made the in terminal start by : npm run start:prod [ then it doesn't give the info about the request.] in this case it start in the production environment.
+
+3) npm stat.  [ by default it is starting the server in the development environment]

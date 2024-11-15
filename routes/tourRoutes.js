@@ -1,29 +1,22 @@
 const express = require('express');
 
 const tourController = require('../controller/tourController');
-
-const router = express.Router(); // just like this we create a new Router and save it into a "tourRouter" variable.
+const router = express.Router();
 
 // PARAM MIDDLEWARE FUNCTION:
-router.param('id', tourController.checkID);
-
-// Create a checkBody middleware
-//Check if body conatins the name and price property
-// If not, send back 400(which stands for bad / invalid request from the client without name and price property)
-// Add it to the post handler stack
+// router.param('id', tourController.checkID);
 
 router
   .route('/')
   .get(tourController.getAllTours)
-  .post(tourController.checkBody, tourController.createTour); // This is how we chain the multiple middleware.
-// if the tourController.checkBody doesn't hit the "if" condition then it call the next() function i,e "tourController.createTour" which is in the middleware stack
+  .post(tourController.createTour);
 router
   .route('/:id')
   .get(tourController.getTour)
   .patch(tourController.updateTour)
   .delete(tourController.deleteTour);
 
-module.exports = router; // Used to export a single function, object, or variable from a module.
+module.exports = router;
 
 ////---COMMENTS----
 /// router.param('id') -->
