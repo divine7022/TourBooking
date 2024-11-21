@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
 
 const dotenv = require('dotenv');
+
+//HANDLING UNCAUGHT EXCEPTION:(EX: Trying to access something which is not exist like[console.log(x)] we didn't declare x.)
+process.on('uncaughtException', err => {
+  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  process.exit(1); // 1 indicates the process ended due to an error
+});
+
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 
@@ -18,11 +26,24 @@ mongoose
     useFindAndModify: false
   })
   .then(() => console.log('DB connection successfull'));
+// .catch(err => console.log('ERROR')); // this catch block to handle when we faild to connect to database.
 
 // console.log(process.env); // by this we can see all the environment variables.
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App running on port ${port}....`);
+});
+
+//UNHANDLED PROMISE REJECTIONS(handleing the error outside of the express)
+process.on('unhandledRejection', err => {
+  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  // process.exit(1); // 0 stands for success and 1 stands for uncalled exception.This(process.exit(1)) will immidetly exit the process.
+  // Gracefully(slowly not suddenly) shut down the server by completing any ongoing requests first
+  server.close(() => {
+    // After the server finishes, we exit the process
+    process.exit(1); // 1 indicates the process ended due to an error
+  });
 });
 
 ////////
@@ -47,3 +68,9 @@ app.listen(port, () => {
 // const Tour = mongoose.model('Tour', tourSchema); --> creating a mode 1st parameter is name of the model and the 2nd paramenter is the name of the schema.
 
 // now we will use the model(it is like a instance of a class) to create the the document of to the Tours database.
+
+// // process.exit(1); // 0 stands for success and 1 stands for uncalled exception.This will immidetly exit the process that should not happen so we need to Shutdown gracefully.
+// Gracefully shut down the server by completing any ongoing requests first
+//  server.close(() => {
+// by doing "server.close" we are give the time to server to finish all the requests that are still pending or being handled at the time only afer that "server" is closed.
+// Shutingdown slowly(not suddenly)

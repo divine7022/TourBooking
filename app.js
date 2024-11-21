@@ -4,6 +4,8 @@ const morgan = require('morgan'); //Morgan is a middleware in Express.js used fo
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controller/errorController');
 
 const app = express();
 
@@ -20,11 +22,12 @@ app.use(express.static(`${__dirname}/public`)); // argument we need to specify t
 // Then we will be able to open the html files and images in the public directiory.
 
 //
-app.use((req, res, next) => {
-  console.log('Hello from the middleware👋');
-  next(); // sending the req and res to the next middleware by calling next() function.
-});
+// app.use((req, res, next) => {
+//   console.log('Hello from the middleware👋');
+//   next(); // sending the req and res to the next middleware by calling next() function.
+// });
 
+// MIDDLEWARE
 // This time we are manipulating the request object.
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString(); // to see when exactly the request happened.
@@ -36,6 +39,12 @@ app.use((req, res, next) => {
 //# means for this route "/api/v1/tours" we want to apply "tourRouter" *MIDDLEWARE* . for that we can use * app.use * to mount them.
 app.use('/api/v1/tours', tourRouter); // Any requests that start with /api/v1/tours should be handled by tourRouter.
 app.use('/api/v1/users', userRouter); //# means for this route "/api/v1/user" we want to apply "userRouter" *MIDDLEWARE* . for that we can use * app.use * to mount them.
+
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+app.use(globalErrorHandler);
 
 module.exports = app;
 

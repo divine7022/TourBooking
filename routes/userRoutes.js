@@ -1,8 +1,11 @@
 const express = require('express');
 const userController = require('./../controller/userController');
+const authController = require('./../controller/authController');
 //[OR]
 // const { getAllUsers, createUser, getUser, updateuser, deleteuser } = require('../controllers/userController');
 const router = express.Router();
+
+router.post('/signup', authController.signup); // this route doesn't follow s the "Rest" phelosophy.[if it is a /users then it follows]
 
 router
   .route('/')
