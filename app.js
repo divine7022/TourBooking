@@ -5,7 +5,7 @@ const morgan = require('morgan'); //Morgan is a middleware in Express.js used fo
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const AppError = require('./utils/appError');
-const globalErrorHandler = require('./controller/errorController');
+const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 

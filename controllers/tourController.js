@@ -16,7 +16,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
     .sort()
     .limitFields()
     .paginate();
-  const tours = await features.query;
+  const tours = await features.query; //Example of query: GET /api/v1/tours?difficulty=easy&sort=price&fields=name,price&limit=5&page=1
 
   // SEND RESPONSE
   res.status(200).json({
