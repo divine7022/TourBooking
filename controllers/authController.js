@@ -100,4 +100,4 @@ exports.protect = catchAsync(async (req, res, next) => {
 ///  const user = User.findOne({email }); email --> it is the shortform of {email: email } in js. the field is called "email" and the variable is also called "email"
 
 //const correct = user.correctPassword(password, user.password); ---->
-//     ('password1234') === "$2a$12$9cECeu/c59WhS1HMuvENrOyE1iJBgX2YnmqisZgB1owMwylFRA54m" while user loging in we want to compare Posted password with the Encrypted password which is in the database. So to comapare we are using "Bcrypt" package.we use Bcrypt to create Hash(Encrypt) password and also to compare the Normay password with the Hashed password.(we are doing this in UserModel file)
+//     ('password1234') === "$2a$12$9cECeu/c59WhS1HMuvENrOyE1iJBgX2YnmqisZgB1owMwylFRA54m" while user loging in we want to compare Posted password with the Encrypted password which is in the database. So to comapare we are using "Bcrypt" package.we use "Bcrypt" to create Hash(Encrypt) password and also to compare the Normal password with the Hashed password.(we are doing this in UserModel file)
